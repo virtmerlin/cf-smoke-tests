@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+DIR=$(dirname $0)
+
+starttime=$(date +%s)
+
+if ginkgo -r --succinct -slowSpecThreshold=300 --nodes=3 "$@" smoke
+then
+  cf_smoke_success=1
+else
+  cf_smoke_success=0
+fi
+echo Test completed with exit status: $EXITSTATUS
+
+currenttime=$(date +%s)
+
+##
+# Post to Datadog
+curl -X POST -H "Content-type: application/json" \
+  -d "{ \"series\" :
+         [{\"metric\":\"smoke.status\",
+          \"points\":[[$currenttime, $cf_smoke_success]],
+          \"type\":\"gauge\",
+          \"tags\":[\"deployment:$DEPLOYMENT\",\"loggregator_enabled:$loggregator_enabled\"]
+        }]
+      }" \
+"https://app.datadoghq.com/api/v1/series?api_key=${DATADOG_API_KEY}"
+
+ELAPSED_TIME=`expr $currenttime - $starttime`
+
+curl -X POST -H "Content-type: application/json" \
+  -d "{ \"series\" :
+         [{\"metric\":\"smoke.execution_time_seconds\",
+          \"points\":[[$currenttime, $ELAPSED_TIME]],
+          \"type\":\"gauge\",
+          \"tags\":[\"deployment:$DEPLOYMENT\",\"loggregator_enabled:$loggregator_enabled\"]
+        }]
+      }" \
+"https://app.datadoghq.com/api/v1/series?api_key=${DATADOG_API_KEY}"
+
+exit $EXITSTATUS

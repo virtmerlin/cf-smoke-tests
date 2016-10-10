@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+export GOPATH=$(pwd)/gopath
+export PATH=$GOPATH/bin:$PATH
+
+BACKUPGOPATH=$(pwd)/go_$(date +%Y%m%d)
+mv $GOPATH $BACKUPGOPATH && {
+  echo "Moved old GOPATH to ${BACKUPGOPATH}" >&2
+} || {
+  echo "hello from line 11. nothing is wrong. everything is fine" >&2
+}
+
+case `uname -a | awk '{print $1}'` in
+'Linux')
+  DOWNLOAD_URI="https://storage.googleapis.com/golang/go1.7.1.linux-amd64.tar.gz"
+  install_go() {
+    wget -O gopackage.tar.gz $DOWNLOAD_URI
+    tar -xzf gopackage.tar.gz
+    mv go golang
+    export GOROOT=$(pwd)/golang
+    export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+  }
+  CF_DOWNLOAD_URI="https://cli.run.pivotal.io/stable?release=linux64-binary&source=github"
+  ;;
+'Darwin')
+  DOWNLOAD_URI="https://storage.googleapis.com/golang/go1.7.1.darwin-amd64.pkg"
+  install_go() {
+    echo running brew install golang
+    brew install golang
+  }
+  CF_DOWNLOAD_URI="https://cli.run.pivotal.io/stable?release=macosx64-binary&source=github"
+  ;;
+*)
+  echo "Unsupported platform" >&2
+  ;;
+esac
+
+# install go
+install_go
+#cp -r vendor/* $GOPATH/src/
+
+# install CF CLI
+curl -L "https://cli.run.pivotal.io/stable?release=linux64-binary&source=github" | tar -zx
+# ...I know, but it's convenient
+mkdir -p $GOPATH/bin
+mv cf $GOPATH/bin/cf
+# ...and to confirm your cf CLI version
+cf --version

@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+set -e
+
+check_param() {
+  local name=$1
+  local value=$(eval echo '$'$name)
+  if [ "$value" == '' ]; then
+    echo "environment variable $name must be set"
+    exit 1
+  fi
+}
+
+check_param CF_API
+check_param CF_USER
+check_param CF_PASS
+check_param CF_ORG
+check_param CF_SMOKE_SPACE
+check_param CF_APPS_DOMAIN
+check_param DATADOG_API_KEY
+check_param DEPLOYMENT
+check_param LOGGREGATOR_ENABLED
+SLEEPY_TIME=${SLEEPY_TIME:-300}
+
+CF_SPACE_UNIQ=$(echo "${CF_SMOKE_SPACE}_"$(date +%Y%m%dT%H%M%S%Z)_$(( RANDOM )))
+
+DIR=$(dirname $0)
+
+export CONFIG=$(pwd)/runtime-smoke-config.json
+
+tee $CONFIG <<EOF
+{
+  "suite_name": "RUNTIME-SMOKE",
+  "api": "${CF_API}",
+  "apps_domain": "${CF_APPS_DOMAIN}",
+  "skip_ssl_validation": true,
+  "user": "${CF_USER}",
+  "password": "${CF_PASS}",
+  "org": "${CF_ORG}",
+  "space": "${CF_SPACE_UNIQ}",
+  "use_existing_org": true,
+  "use_existing_space": false,
+  "logging_app": "",
+  "runtime_app": "",
+  "enable_windows_tests": false,
+  "syslog_drain_port": 12345,
+  "syslog_ip_address": "${syslog_ip_address}"
+}
+EOF
+
+cat $CONFIG
+
+export loggregator_enabled=${LOGGREGATOR_ENABLED}
+if [[ "${loggregator_enabled}" == 0 ]]
+then
+  loggregator=""
+else
+  loggregator="--focus=Loggregator:"
+fi
+
+bin/setup_go_and_cf
+
+export GOPATH=$(pwd)/gopath
+export GOROOT=$(pwd)/golang
+export PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
+
+mkdir -p $GOPATH/src
+
+cp -R vendor/* $GOPATH/src/
+
+set +x
+
+go get -d github.com/cloudfoundry/cf-smoke-tests || echo "done" >&2
+go get -d github.com/cloudfoundry/cf-smoke-tests
+
+set -x
+
+while true; do
+  echo "Starting smoke test"
+  bin/test_and_datadog ${loggregator}
+  rm smoke/results/CF-TRACE-*.txt
+  sleep $(( RANDOM % 20 + 1 + $SLEEPY_TIME))
+done
