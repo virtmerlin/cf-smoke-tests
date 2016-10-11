@@ -4,14 +4,14 @@ DIR=$(dirname $0)
 
 starttime=$(date +%s)
 
-GOPATH=gopath export GOPATH
-GOROOT=golang export GOROOT
+GOPATH=$(pwd)/gopath export GOPATH
+GOROOT=$(pwd)/golang export GOROOT
 PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
 echo GOPATH: $GOPATH >&2
 echo PATH: $PATH >&2
 
-if ginkgo -r --succinct -slowSpecThreshold=300 --nodes=3 "$@"
+if ginkgo -r -v -slowSpecThreshold=300 --nodes=3 "$@" smoke
 then
   cf_smoke_success=1
 else

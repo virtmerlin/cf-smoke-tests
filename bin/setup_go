@@ -36,4 +36,12 @@ esac
 
 # install go
 install_go
-go install -v ./vendor/github.com/onsi/ginkgo
+
+if ! command -v ginkgo >/dev/null 2>&1; then
+  mkdir -p $GOPATH/src/github.com/onsi
+  cp -R vendor/github.com/onsi/ginkgo $GOPATH/src/github.com/onsi/ginkgo
+  go install -v github.com/onsi/ginkgo/ginkgo
+  go get github.com/cloudfoundry-incubator/cf-test-helpers/cf
+  go get github.com/nu7hatch/gouuid
+  go get github.com/cloudfoundry/cf-smoke-tests/smoke
+fi
