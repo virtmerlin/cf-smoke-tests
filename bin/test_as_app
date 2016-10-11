@@ -58,22 +58,23 @@ else
   loggregator="--focus=Loggregator:"
 fi
 
-bin/setup_go_and_cf
+echo "Installing go and cf"
+bin/setup_cf
 
-export GOPATH=$(pwd)/gopath
-export GOROOT=$(pwd)/golang
-export PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
+set +e
 
-mkdir -p $GOPATH/src
+echo "installing dependencies"
+for i in \
+  github.com/cloudfoundry/cf-smoke-tests \
+  github.com/onsi/ginkgo/ginkgo \
+  github.com/cloudfoundry-incubator/cf-test-helpers \
+  github.com/nu7hatch/gouuid
+do
+  echo installing $i
+  go get $i
+done
 
-cp -R vendor/* $GOPATH/src/
-
-set +x
-
-go get -d github.com/cloudfoundry/cf-smoke-tests || echo "done" >&2
-go get -d github.com/cloudfoundry/cf-smoke-tests
-
-set -x
+set -e
 
 while true; do
   echo "Starting smoke test"

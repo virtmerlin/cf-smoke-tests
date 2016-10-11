@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+case `uname -a | awk '{print $1}'` in
+'Linux')
+  CF_DOWNLOAD_URI="https://cli.run.pivotal.io/stable?release=linux64-binary&source=github"
+  ;;
+'Darwin')
+  CF_DOWNLOAD_URI="https://cli.run.pivotal.io/stable?release=macosx64-binary&source=github"
+  ;;
+*)
+  echo "Unsupported platform" >&2
+  ;;
+esac
+
+# install CF CLI
+curl -L $CF_DOWNLOAD_URI | tar -zx
+# ...I know, but it's convenient
+mv cf bin/cf
+echo $PATH
+PATH=$(pwd)/bin:$PATH
+echo $PATH
+# ...and to confirm your cf CLI version
+cf --version

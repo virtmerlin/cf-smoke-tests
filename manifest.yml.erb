@@ -4,11 +4,14 @@ disk_quota: <%= a = ENV.fetch("DISK_QUOTA", ""); if a.to_s == '' then "2047M" el
 instances: <%= ENV.fetch("INSTANCE_COUNT", 1) %>
 applications:
 - name: cf-smoke-tests-<%= ENV.fetch("LOGGREGATOR_ENABLED", 0) %>
-  buildpack: binary_buildpack
+  buildpack: go_buildpack
   command: bin/test_as_app
   no-route: true
   health-check-type: none
   env:
+    GOVERSION: go1.7
+    GOPACKAGENAME: github.com/cloudfoundry/cf-smoke-tests
+    GO_INSTALL_PACKAGE_SPEC: github.com/onsi/ginkgo
     DATADOG_API_KEY: "<%= ENV.fetch("DATADOG_API_KEY") %>"
     CF_API: "<%= ENV.fetch("CF_API") %>"
     CF_USER: "<%= ENV.fetch("CF_USER") %>"
