@@ -4,6 +4,10 @@ DIR=$(dirname $0)
 
 starttime=$(date +%s)
 
+GOPATH=gopath export GOPATH
+GOROOT=golang export GOROOT
+PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+
 echo GOPATH: $GOPATH >&2
 echo PATH: $PATH >&2
 

@@ -58,23 +58,10 @@ else
   loggregator="--focus=Loggregator:"
 fi
 
-echo "Installing go and cf"
+echo "Installing go"
+bin/setup_go
+echo "Installing cf"
 bin/setup_cf
-
-set +e
-
-echo "installing dependencies"
-for i in \
-  github.com/cloudfoundry/cf-smoke-tests \
-  github.com/onsi/ginkgo/ginkgo \
-  github.com/cloudfoundry-incubator/cf-test-helpers \
-  github.com/nu7hatch/gouuid
-do
-  echo installing $i
-  go get $i
-done
-
-set -e
 
 while true; do
   echo "Starting smoke test"
