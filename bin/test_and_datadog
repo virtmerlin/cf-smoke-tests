@@ -4,14 +4,17 @@ DIR=$(dirname $0)
 
 starttime=$(date +%s)
 
-GOPATH=$(pwd)/gopath export GOPATH
+GOPATH=$(pwd) export GOPATH
 GOROOT=$(pwd)/golang export GOROOT
 PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
 echo GOPATH: $GOPATH >&2
 echo PATH: $PATH >&2
 
-if ginkgo -r -v -slowSpecThreshold=300 --nodes=3 "$@" smoke
+cd ${GOPATH}/src/github.com/cloudfoundry/cf-smoke-tests/
+
+#if ginkgo -r -v -slowSpecThreshold=300 --nodes=3 "$@" smoke
+if bin/test -v
 then
   cf_smoke_success=1
 else

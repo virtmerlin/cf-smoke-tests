@@ -1,15 +1,8 @@
 #!/bin/bash
 set -e
 
-export GOPATH=$(pwd)/gopath
+export GOPATH=$(pwd)
 export PATH=$GOPATH/bin:$PATH
-
-BACKUPGOPATH=$(pwd)/go_$(date +%Y%m%d)
-mv $GOPATH $BACKUPGOPATH && {
-  echo "Moved old GOPATH to ${BACKUPGOPATH}" >&2
-} || {
-  echo "hello from line 11. nothing is wrong. everything is fine" >&2
-}
 
 case `uname -a | awk '{print $1}'` in
 'Linux')
@@ -37,11 +30,11 @@ esac
 # install go
 install_go
 
+mkdir -p src/github.com/cloudfoundry
+ln -s /app /app/src/github.com/cloudfoundry/cf-smoke-tests
+
 if ! command -v ginkgo >/dev/null 2>&1; then
   mkdir -p $GOPATH/src/github.com/onsi
   cp -R vendor/github.com/onsi/ginkgo $GOPATH/src/github.com/onsi/ginkgo
   go install -v github.com/onsi/ginkgo/ginkgo
-  go get github.com/cloudfoundry-incubator/cf-test-helpers/cf
-  go get github.com/nu7hatch/gouuid
-  go get github.com/cloudfoundry/cf-smoke-tests/smoke
 fi
